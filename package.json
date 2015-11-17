@@ -2,7 +2,7 @@
   "name": "oppsy",
   "version": "0.0.1",
   "repository": "git://github.com/hapijs/oppsy",
-  "description": "hapi plugin for server ops information",
+  "description": "An EventEmitter useful for collecting hapi server ops information",
   "main": "lib/index.js",
   "scripts": {
     "test": "lab -a code -t 100 -Lv"
