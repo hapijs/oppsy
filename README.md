@@ -40,6 +40,6 @@ The oppsy object is an EventEmitter so it exposes the same API(`.on` and `.emit`
 Starts an Oppsy object collecting network and server information.
 - `interval` - number of seconds to wait between each data sampling.
 
-#### opps.stop()
+#### oppsy.stop()
 
 Stops an Oppsy objects collecting.
