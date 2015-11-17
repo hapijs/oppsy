@@ -33,6 +33,8 @@ Creates a new Oppsy object.
   - `httpAgents` - the list of httpAgents to report socket information about. Can be a single http.Agent or an array of agents objects. Defaults to Http.globalAgent.
   - `httpsAgents` - the list of httpsAgents to report socket information about. Can be a single https.Agent or an array of agents. Defaults to Https.globalAgent.
 
+The oppsy object is an EventEmitter so it exposes the same API(`.on` and `.emit`) as the Node EventEmitter object. After it is started, it emits an "ops" event after a set interval with the collected ops information as the event payload.
+
 #### oppsy.start(interval)
 
 Starts an Oppsy object collecting network and server information.
