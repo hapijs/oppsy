@@ -137,4 +137,34 @@ describe('Oppsy', () => {
             }, 500);
         });
     });
+
+    it('emits "ops" events with data', (done) => {
+
+        let _data = {};
+        const server = new Hapi.Server();
+        server.connection({ host: 'localhost' });
+
+        const opps = new Oppsy(new Hapi.Server());
+
+        opps.on('ops', (data) => {
+
+            _data = data;
+        });
+        opps.start(100);
+        setTimeout(() => {
+
+            expect(_data.requests).to.deep.equal({});
+            expect(_data.concurrents).to.deep.equal({});
+            expect(_data.responseTimes).to.deep.equal({});
+            expect(_data.sockets).to.deep.equal({
+                http: { total: 0 },
+                https: { total: 0 }
+            });
+            expect(_data.osload).to.have.length(3);
+            expect(_data.osmem).to.contain('total', 'free');
+            expect(_data).to.contain('osup', 'psup', 'psdelay', 'host');
+            expect(_data.psmem).to.contain('rss', 'heapTotal', 'heapUsed');
+            done();
+        }, 500);
+    });
 });
