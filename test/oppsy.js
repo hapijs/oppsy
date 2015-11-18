@@ -136,5 +136,24 @@ describe('Oppsy', () => {
                 done();
             }, 500);
         });
+        it('emitted values should not be undefined', (done) => {
+
+            let _data = {};
+            const opps = new Oppsy(new Hapi.Server());
+
+            opps.on('ops', (data) => {
+
+                _data = data;
+            });
+            opps.start(100);
+            setTimeout(() => {
+
+                expect(_data.requests).not.equal(undefined);
+                expect(_data.concurrents).not.equal(undefined);
+                expect(_data.responseTimes).not.equal(undefined);
+                expect(_data.sockets).not.equal(undefined);
+                done();
+            }, 500);
+        });
     });
 });
