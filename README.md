@@ -23,7 +23,7 @@ server.start(() => {
 });
 ```
 
-This creates a new Oppsy object and starts collecting information ever 1000 miliseconds
+This creates a new Oppsy object and starts collecting information every 1000 miliseconds
 
 ### new Oppsy(server, [config])
 
@@ -38,7 +38,7 @@ The oppsy object is an EventEmitter so it exposes the same API(`.on` and `.emit`
 #### oppsy.start(interval)
 
 Starts an Oppsy object collecting network and server information.
-- `interval` - number of seconds to wait between each data sampling.
+- `interval` - number of milliseconds to wait between each data sampling.
 
 #### oppsy.stop()
 
