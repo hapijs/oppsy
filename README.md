@@ -18,9 +18,9 @@ oppsy.on('ops', (data) => {
   console.log(data);
 });
 
-server.start(() => {
-  oppsy.start(1000);
-});
+await server.start();
+
+oppsy.start(1000);
 ```
 
 This creates a new Oppsy object and starts collecting information every 1000 miliseconds

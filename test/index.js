@@ -1,7 +1,6 @@
 'use strict';
 
 // Load modules
-const Events = require('events');
 const Fs = require('fs');
 const Http = require('http');
 const Https = require('https');
@@ -9,12 +8,12 @@ const Stream = require('stream');
 
 const Code = require('code');
 const Hapi = require('hapi');
-const Items = require('items');
 const Lab = require('lab');
 
 const Os = require('../lib/os');
 const Process = require('../lib/process');
 const Network = require('../lib/network');
+const Utils = require('../lib/utils');
 
 // Test shortcuts
 
@@ -23,222 +22,230 @@ const expect = Code.expect;
 const describe = lab.describe;
 const it = lab.it;
 
-
 describe('Oppsy', () => {
 
     describe('Network', () => {
 
-        it('reports on network activity', (done) => {
+        it('reports on network activity', async () => {
 
-            const server = new Hapi.Server();
-            server.connection({ host: 'localhost' });
-            server.connection({ host: 'localhost' });
+            const server = new Hapi.Server({
+                host: 'localhost'
+            });
 
             server.route({
+                options: {
+                    log: {
+                        collect: true
+                    }
+                },
                 method: 'GET',
                 path: '/',
-                handler: (request, reply) => {
+                handler: (request, h) => {
 
-                    reply();
+                    return 'ok';
                 }
             });
 
             const network = new Network(server);
-            const agent = new Http.Agent({ maxSockets: Infinity });
-            const usedPorts = [];
-
-            server.start(() => {
-
-                server.connections.forEach((conn) => {
-
-                    usedPorts.push(conn.info.port);
-
-                    for (let i = 0; i < 20; ++i) {
-                        Http.get({
-                            path: '/',
-                            host: conn.info.host,
-                            port: conn.info.port,
-                            agent: agent
-                        }, () => {});
-                    }
-                });
-
-                setTimeout(() => {
-
-                    expect(network._requests).to.have.length(2);
-
-                    let port = usedPorts.shift();
-
-                    while (port) {
-
-                        expect(network._requests[port]).to.exist();
-                        expect(network._requests[port].total).to.equal(20);
-                        expect(network._requests[port].statusCodes[200]).to.equal(20);
-                        expect(network._responseTimes[port]).to.exist();
-                        port = usedPorts.shift();
-                    }
-
-                    done();
-                }, 500);
+            const agent = new Http.Agent({
+                maxSockets: Infinity
             });
+
+            await server.start();
+
+            for (let i = 0; i < 20; ++i) {
+                Http.get({
+                    path: '/',
+                    host: server.info.host,
+                    port: server.info.port,
+                    agent
+                }, () => {});
+            }
+
+            await Utils.timeout(500);
+
+            expect(network._requests).to.have.length(1);
+            expect(network._requests[server.info.port]).to.exist();
+            expect(network._requests[server.info.port].total).to.equal(20);
+            expect(network._requests[server.info.port].statusCodes[200]).to.equal(20);
+            expect(network._responseTimes[server.info.port]).to.exist();
         });
 
-        it('resets stored statistics', (done) => {
+        it('resets stored statistics', async () => {
 
-            const server = new Hapi.Server();
-            server.connection({ host: 'localhost' });
+            const server = new Hapi.Server({
+                host: 'localhost'
+            });
 
             server.route({
                 method: 'GET',
                 path: '/',
-                handler: (request, reply) => {
+                handler: (request, h) => {
 
-                    reply();
+                    return 'ok';
                 }
             });
 
             const network = new Network(server);
-            const agent = new Http.Agent({ maxSockets: Infinity });
+            const agent = new Http.Agent({
+                maxSockets: Infinity
+            });
 
-            server.start(() => {
+            await server.start();
 
-                for (let i = 0; i < 10; ++i) {
-                    Http.get({
-                        path: '/',
-                        host: server.info.host,
-                        port: server.info.port,
-                        agent: agent
-                    }, () => {});
-                }
+            for (let i = 0; i < 10; ++i) {
+                Http.get({
+                    path: '/',
+                    host: server.info.host,
+                    port: server.info.port,
+                    agent
+                }, () => {});
+            }
 
+            await Utils.timeout(300);
 
-                setTimeout(() => {
+            const port = server.info.port;
 
-                    const port = server.info.port;
+            expect(network._requests[port]).to.exist();
+            expect(network._requests[port].total).to.equal(10);
+            expect(network._requests[port].statusCodes[200]).to.equal(10);
 
-                    expect(network._requests[port]).to.exist();
-                    expect(network._requests[port].total).to.equal(10);
-                    expect(network._requests[port].statusCodes[200]).to.equal(10);
+            expect(network._responseTimes[port]).to.exist();
 
-                    expect(network._responseTimes[port]).to.exist();
+            network.reset();
 
-                    network.reset();
+            expect(network._requests[port]).to.equal({
+                total: 0,
+                disconnects: 0,
+                statusCodes: {}
+            });
 
-                    expect(network._requests[port]).to.deep.equal({
-                        total: 0,
-                        disconnects: 0,
-                        statusCodes: {}
-                    });
-
-                    expect(network._responseTimes[port]).to.deep.equal({
-                        count: 0,
-                        total: 0,
-                        max: 0
-                    });
-
-                    done();
-                }, 300);
+            expect(network._responseTimes[port]).to.equal({
+                count: 0,
+                total: 0,
+                max: 0
             });
         });
 
-        it('reports on socket information', { skip: false }, (done) => {
+        it('reports on socket information', async () => {
 
-            const server = new Hapi.Server();
-            server.connection({ host: 'localhost' });
+            const server = new Hapi.Server({
+                host: 'localhost'
+            });
 
-            const upstream = new Hapi.Server();
-            upstream.connection({
+            const upstreamsecure = new Hapi.Server({
                 host: 'localhost',
                 tls: {
-                    key: Fs.readFileSync(process.cwd() + '/test/fixtures/server.key', { encoding: 'utf8' }),
-                    cert: Fs.readFileSync(process.cwd() + '/test/fixtures/server.crt', { encoding: 'utf8' })
+                    key: Fs.readFileSync(process.cwd() + '/test/fixtures/server.key', {
+                        encoding: 'utf8'
+                    }),
+                    cert: Fs.readFileSync(process.cwd() + '/test/fixtures/server.crt', {
+                        encoding: 'utf8'
+                    })
                 }
             });
 
-            upstream.route({
+            const upstream = new Hapi.Server({
+                host: 'localhost'
+            });
+
+            const upstreamRoute = {
                 method: 'GET',
                 path: '/',
-                handler: (request, reply) => {/* trap the request here */}
+                handler: async (request, h) => {
+
+                    await Utils.timeout(500);
+
+                    return 'ok';
+                }
+            };
+
+            upstreamsecure.route(upstreamRoute);
+
+            upstream.route(upstreamRoute);
+
+            await upstreamsecure.start();
+            await upstream.start();
+
+            const httpAgent = new Http.Agent({
+                maxSockets: Infinity
+            });
+            const httpsAgent = new Https.Agent({
+                maxSockets: Infinity
+            });
+            const network = new Network(server, httpAgent, httpsAgent);
+
+            server.route({
+                method: 'GET',
+                path: '/',
+                handler: (request, h) => {
+
+                    Https.get({
+                        hostname: upstreamsecure.info.host,
+                        port: upstreamsecure.info.port,
+                        path: '/',
+                        agent: httpsAgent,
+                        rejectUnauthorized: false
+                    });
+
+                    Http.get({
+                        hostname: upstream.info.host,
+                        port: upstream.info.port,
+                        path: '/',
+                        agent: httpAgent,
+                        rejectUnauthorized: false
+                    });
+
+                    return 'ok';
+                }
             });
 
-            upstream.start(() => {
+            server.route({
+                method: 'GET',
+                path: '/foo',
+                handler: async (request, h) => {
 
-                const httpAgent = new Http.Agent({ maxSockets: Infinity });
-                const httpsAgent = new Https.Agent({ maxSockets: Infinity });
-                const network = new Network(server, httpAgent, httpsAgent);
+                    await Utils.timeout(Math.floor(Math.random() * 10) + 1);
 
-                server.route({
-                    method: 'GET',
+                    return 'ok';
+                }
+            });
+
+            await server.start();
+
+            for (let i = 0; i < 10; ++i) {
+                Http.get({
                     path: '/',
-                    handler: (request, reply) => {
-
-                        Https.get({
-                            hostname: upstream.info.host,
-                            port: upstream.info.port,
-                            path: '/',
-                            agent: httpsAgent,
-                            rejectUnauthorized: false
-                        });
-                    }
+                    host: server.info.host,
+                    port: server.info.port,
+                    agent: httpAgent
                 });
 
-                server.route({
-                    method: 'GET',
+                Http.get({
                     path: '/foo',
-                    handler: (request, reply) => {
-
-                        setTimeout(() => {
-
-                            reply();
-                        }, Math.floor(Math.random() * 10) + 1);
-                    }
+                    host: server.info.host,
+                    port: server.info.port,
+                    agent: httpAgent
                 });
+            }
 
-                server.start(() => {
+            await Utils.timeout(300);
 
-                    for (let i = 0; i < 10; ++i) {
-                        Http.get({
-                            path: '/',
-                            host: server.info.host,
-                            port: server.info.port,
-                            agent: httpAgent
-                        });
+            const [response, sockets] = await Promise.all([
+                network.responseTimes(),
+                network.sockets()
+            ]);
 
-                        Http.get({
-                            path: '/foo',
-                            host: server.info.host,
-                            port: server.info.port,
-                            agent: httpAgent
-                        });
-                    }
+            const port = server.info.port;
 
-                    setTimeout(() => {
+            expect(sockets.http.total).to.be.at.least(10);
+            expect(sockets.https.total).to.be.equal(10);
 
-                        Items.parallel.execute({
-                            concurrents: network.concurrents.bind(network),
-                            response: network.responseTimes.bind(network),
-                            sockets: network.sockets.bind(network)
-                        }, (err, results) => {
-
-                            const port = server.info.port;
-
-                            expect(err).to.not.exist();
-                            expect(results.concurrents[port]).to.be.a.number();
-
-                            expect(results.sockets.http.total).to.be.at.least(10);
-                            expect(results.sockets.https.total).to.be.at.least(10);
-
-                            expect(results.response[port].avg).to.be.at.least(1);
-                            expect(results.response[port].max).to.be.at.least(1);
-
-                            done();
-                        });
-                    }, 300);
-                });
-            });
+            expect(response[port].avg).to.be.at.least(1);
+            expect(response[port].max).to.be.at.least(1);
         });
 
-        it('tracks server disconnects', (done) => {
+        it('tracks server disconnects', async () => {
 
             class TestStream extends Stream.Readable {
                 constructor() {
@@ -265,96 +272,81 @@ describe('Oppsy', () => {
                 }
             }
 
-            const server = new Hapi.Server();
-            server.connection({ host: 'localhost' });
+            const server = new Hapi.Server({
+                host: 'localhost'
+            });
 
             server.route({
                 method: 'POST',
                 path: '/',
-                handler: (request, reply) => {
+                handler: (request, h) => {
 
-                    reply(new TestStream());
+                    return new TestStream();
                 }
             });
 
             const network = new Network(server);
 
-            server.start(() => {
+            await server.start();
 
-                const options = {
-                    hostname: server.info.host,
-                    port: server.info.port,
-                    path: '/',
-                    method: 'POST'
-                };
+            const options = {
+                hostname: server.info.host,
+                port: server.info.port,
+                path: '/',
+                method: 'POST'
+            };
 
-                const req = Http.request(options, (res) => {
+            const req = Http.request(options, (res) => {
 
-                    req.destroy();
-                });
-
-                req.end('{}');
+                req.destroy();
             });
 
-            setTimeout(() => {
+            req.end('{}');
 
-                network.requests((err, result) => {
+            await Utils.timeout(700);
 
-                    expect(err).to.not.exist();
-                    const requests = {};
-                    requests[server.info.port] = { total: 1, disconnects: 1, statusCodes: { '200': 1 } };
+            const result = await network.requests();
 
-                    expect(result).to.deep.equal(requests);
-                    server.stop(done);
-                });
-            }, 400);
-        });
-
-        it('error checks getConnections', (done) => {
-
-            const ee = new Events.EventEmitter();
-            ee.connections = [{
-                listener: {
-                    getConnections: (callback) => {
-
-                        callback(new Error('mock error'));
-                    }
+            const requests = {};
+            requests[server.info.port] = {
+                total: 1,
+                disconnects: 1,
+                statusCodes: {
+                    '200': 1
                 }
-            }];
-            ee.ext = () => {};
+            };
 
-            const network = new Network(ee);
+            expect(result).to.equal(requests);
 
-            network.concurrents((err) => {
-
-                expect(err.message).to.equal('mock error');
-                done();
-            });
+            return server.stop();
         });
 
-        it('does not throw if request.response is null', (done) => {
+        it('does not throw if request.response is null', async () => {
 
-            const server = new Hapi.Server();
-            server.connection({ host: 'localhost' });
+            const server = new Hapi.Server({
+                host: 'localhost'
+            });
 
             server.route({
                 method: 'GET',
                 path: '/',
-                handler: (request, reply) => {
+                handler: (request, h) => {
 
-                    reply();
+                    return 'ok';
                 }
             });
 
             // force response to be null to mimic client disconnect
-            server.on('response', (request) => {
+            server.events.on('response', (request) => {
 
                 request.response = null;
             });
 
             const network = new Network(server);
 
-            server.start(() => {
+            await server.start();
+
+            new Promise((resolve) => {
 
                 Http.get({
                     path: '/',
@@ -364,51 +356,43 @@ describe('Oppsy', () => {
 
                     expect(network._requests[server.info.port]).to.exist();
                     expect(network._requests[server.info.port].total).to.equal(1);
-                    expect(network._requests[server.info.port].statusCodes).to.deep.equal({});
-                    done();
+                    expect(network._requests[server.info.port].statusCodes).to.equal({});
+                    resolve();
                 });
             });
         });
     });
+
     describe('os information', () => {
 
         describe('mem()', () => {
 
-            it('returns an object with the current memory usage', (done) => {
+            it('returns an object with the current memory usage', async () => {
 
-                Os.mem((err, mem) => {
+                const mem = await Os.mem();
 
-                    expect(err).to.not.exist();
-                    expect(mem).to.exist();
-                    expect(mem.total).to.exist();
-                    expect(mem.free).to.exist();
-                    done();
-                });
+                expect(mem).to.exist();
+                expect(mem.total).to.exist();
+                expect(mem.free).to.exist();
             });
         });
         describe('loadavg()', () => {
 
-            it('returns an object with the current load average', (done) => {
+            it('returns an object with the current load average', async () => {
 
-                Os.loadavg((err, load) => {
+                const load = await Os.loadavg();
 
-                    expect(err).to.not.exist();
-                    expect(load).to.have.length(3);
-                    done();
-                });
+                expect(load).to.have.length(3);
             });
         });
         describe('uptime()', () => {
 
-            it('returns an object with the current uptime', (done) => {
+            it('returns an object with the current uptime', async () => {
 
-                Os.uptime((err, uptime) => {
+                const uptime = await Os.uptime();
 
-                    expect(err).to.not.exist();
-                    expect(uptime).to.exist();
-                    expect(uptime).to.be.a.number();
-                    done();
-                });
+                expect(uptime).to.exist();
+                expect(uptime).to.be.a.number();
             });
         });
     });
@@ -416,26 +400,21 @@ describe('Oppsy', () => {
 
         describe('memory()', () => {
 
-            it('passes the current memory usage to the callback', (done) => {
+            it('passes the current memory usage to the callback', async () => {
 
-                Process.memoryUsage((err, mem) => {
+                const mem = await Process.memoryUsage();
 
-                    expect(err).not.to.exist();
-                    expect(mem).to.exist();
-                    done();
-                });
+                expect(mem).to.exist();
             });
         });
+
         describe('delay()', () => {
 
-            it('passes the current event queue delay to the callback', (done) => {
+            it('passes the current event queue delay to the callback', async () => {
 
-                Process.delay((err, delay) => {
+                const delay = await Process.delay();
 
-                    expect(err).not.to.exist();
-                    expect(delay).to.exist();
-                    done();
-                });
+                expect(delay).to.exist();
             });
         });
     });
