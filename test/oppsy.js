@@ -186,5 +186,6 @@ describe('Oppsy', () => {
         expect(_data.osmem).to.contain(['total', 'free']);
         expect(_data).to.contain(['osup', 'psup', 'psdelay', 'host']);
         expect(_data.psmem).to.contain(['rss', 'heapTotal', 'heapUsed']);
+        expect(_data.pscpu).to.contain(['user', 'system']);
     });
 });
