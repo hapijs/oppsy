@@ -312,7 +312,7 @@ describe('Oppsy', () => {
                 total: 1,
                 disconnects: 1,
                 statusCodes: {
-                    '200': 1
+                    '499': 1
                 }
             };
 
