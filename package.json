@@ -5,7 +5,7 @@
   "description": "An EventEmitter useful for collecting hapi server ops information",
   "main": "lib/index.js",
   "scripts": {
-    "test": "lab -a code -t 100 -Lv"
+    "test": "lab -a code -t 100 -L"
   },
   "keywords": [
     "hapi",
