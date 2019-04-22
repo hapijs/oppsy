@@ -1,16 +1,16 @@
+<a href="http://hapijs.com"><img src="https://github.com/hapijs/assets/blob/master/images/family.svg" width="180px" align="right" /></a>
+
 # oppsy
 
 An EventEmitter useful for collecting hapi server ops information.
 
-[![Build Status](https://secure.travis-ci.org/hapijs/oppsy.svg)](http://travis-ci.org/hapijs/oppsy)![Current Version](https://img.shields.io/npm/v/oppsy.svg)
-
-Lead Maintainer: Open Position
+[![Build Status](https://secure.travis-ci.org/hapijs/oppsy.svg?branch=master)](http://travis-ci.org/hapijs/oppsy)![Current Version](https://img.shields.io/npm/v/oppsy.svg)
 
 ## Usage
 
 ```js
-const Oppsy = require('oppsy');
-const Hapi = require('hapi');
+const Hapi = require('@hapi/hapi');
+const Oppsy = require('@hapi/oppsy');
 
 const server = new Hapi.Server();
 const oppsy = new Oppsy(server);

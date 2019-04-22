@@ -1,23 +1,22 @@
 'use strict';
 
-// Load modules
 const Os = require('os');
 
-const Code = require('code');
-const Hapi = require('hapi');
-const Lab = require('lab');
+const Code = require('@hapi/code');
+const Hapi = require('@hapi/hapi');
+const Lab = require('@hapi/lab');
 
 const Network = require('../lib/network');
 const Utils = require('../lib/utils');
 const Oppsy = require('../lib');
 
 
-// Test shortcuts
+const internals = {};
 
-const lab = exports.lab = Lab.script();
+
+const { describe, it } = exports.lab = Lab.script();
 const expect = Code.expect;
-const describe = lab.describe;
-const it = lab.it;
+
 
 describe('Oppsy', () => {
 
