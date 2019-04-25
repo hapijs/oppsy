@@ -1,6 +1,6 @@
 {
   "name": "@hapi/oppsy",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "repository": "git://github.com/hapijs/oppsy",
   "description": "An EventEmitter useful for collecting hapi server ops information",
   "main": "lib/index.js",
