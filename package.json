@@ -10,7 +10,7 @@
     "plugin"
   ],
   "dependencies": {
-    "hoek": "6.x.x"
+    "@hapi/hoek": "6.x.x"
   },
   "devDependencies": {
     "@hapi/code": "5.x.x",
