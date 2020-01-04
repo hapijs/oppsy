@@ -12,6 +12,7 @@
 
 - [Documentation and API](https://hapi.dev/family/oppsy/)
 - [Version status](https://hapi.dev/resources/status/#oppsy) (builds, dependencies, node versions, licenses, eol)
+- [Changelog](https://hapi.dev/family/oppsy/changelog/)
 - [Project policies](https://hapi.dev/policies/)
 - [Free and commercial support options](https://hapi.dev/support/)
 
