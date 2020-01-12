@@ -22,7 +22,7 @@ const { describe, it } = exports.lab = Lab.script();
 const expect = Code.expect;
 
 
-describe('Oppsy', () => {
+describe('Oppsy', { retry: true }, () => {
 
     describe('Network', () => {
 
