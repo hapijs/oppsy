@@ -9,6 +9,7 @@ const Code = require('@hapi/code');
 const Hapi = require('@hapi/hapi');
 const Lab = require('@hapi/lab');
 
+const Oppsy = require('../lib');
 const Os = require('../lib/os');
 const Process = require('../lib/process');
 const Network = require('../lib/network');
@@ -23,6 +24,23 @@ const expect = Code.expect;
 
 
 describe('Oppsy', { retry: true }, () => {
+
+    it('handles onRequest errors', async () => {
+
+        const server = new Hapi.Server();
+
+        server.ext('onRequest', () => {
+
+            throw new Error('foobar');
+        });
+
+        const oppsy = new Oppsy(server);
+        oppsy.start(1000);
+        await server.inject({
+            method: 'GET',
+            url: '/'
+        });
+    });
 
     describe('Network', () => {
 
