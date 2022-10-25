@@ -86,7 +86,60 @@ describe('Oppsy', { retry: true }, () => {
             expect(network._requests[server.info.port]).to.exist();
             expect(network._requests[server.info.port].total).to.equal(20);
             expect(network._requests[server.info.port].statusCodes[200]).to.equal(20);
+            expect(network._requests[server.info.port].activeRequests).to.equal(0);
             expect(network._responseTimes[server.info.port]).to.exist();
+            expect(network._responseTimes[server.info.port]).to.exist();
+
+        });
+
+        it('reports on activeRequests', async () => {
+
+            const server = new Hapi.Server({
+                host: 'localhost'
+            });
+
+            server.route({
+                options: {
+                    log: {
+                        collect: true
+                    }
+                },
+                method: 'GET',
+                path: '/',
+                handler: (request, h) => {
+
+                    return new Promise((resolve)=>{
+                        setTimeout(()=>{resolve('ok')},1000)
+                    })
+                }
+            });
+
+            const network = new Network(server);
+            const agent = new Http.Agent({
+                maxSockets: Infinity
+            });
+
+            await server.start();
+
+            for (let i = 0; i < 20; ++i) {
+                Http.get({
+                    path: '/',
+                    host: server.info.host,
+                    port: server.info.port,
+                    agent
+                }, () => {});
+            }
+
+            await Utils.timeout(500);
+
+            expect(network._requests).to.have.length(1);
+            expect(network._requests[server.info.port]).to.exist();
+            expect(network._requests[server.info.port].total).to.equal(20);
+            expect(network._requests[server.info.port].statusCodes).to.equal({});
+            expect(network._requests[server.info.port].activeRequests).to.not.equal(0);
+            expect(network._responseTimes[server.info.port]).to.not.exist();
+
+
         });
 
         it('resets stored statistics', async () => {
@@ -329,6 +382,7 @@ describe('Oppsy', { retry: true }, () => {
             requests[server.info.port] = {
                 total: 1,
                 disconnects: 1,
+                activeRequests: 0,
                 statusCodes: {
                 }
             };
