@@ -188,14 +188,79 @@ describe('Oppsy', { retry: true }, () => {
             expect(network._requests[port]).to.equal({
                 total: 0,
                 disconnects: 0,
-                statusCodes: {}
+                statusCodes: {},
+                activeRequests: 0
             });
+
 
             expect(network._responseTimes[port]).to.equal({
                 count: 0,
                 total: 0,
                 max: 0
             });
+
+
+        });
+        it('resets should not reset activeRequests', async () => {
+
+            const server = new Hapi.Server({
+                host: 'localhost'
+            });
+
+            server.route({
+                method: 'GET',
+                path: '/',
+                handler: (request, h) => {
+                    return new Promise((resolve)=>{
+                        setTimeout(()=>{resolve('ok')},10000)
+                    })
+                }
+            });
+
+            const network = new Network(server);
+            const agent = new Http.Agent({
+                maxSockets: Infinity
+            });
+
+            await server.start();
+
+            for (let i = 0; i < 10; ++i) {
+                Http.get({
+                    path: '/',
+                    host: server.info.host,
+                    port: server.info.port,
+                    agent
+                }, () => {});
+            }
+
+            await Utils.timeout(100);
+
+            const port = server.info.port;
+
+            expect(network._requests[port]).to.exist();
+            expect(network._requests[port].total).to.equal(10);
+            expect(network._requests[port].statusCodes).to.equal({});
+            expect(network._requests[port].activeRequests).to.equal(10);
+
+            expect(network._responseTimes).to.equal({});
+
+            network.reset();
+
+            expect(network._requests[port]).to.equal({
+                total: 0,
+                disconnects: 0,
+                statusCodes: {},
+                activeRequests: 10
+            });
+
+
+            expect(network._responseTimes[port]).to.equal({
+                count: 0,
+                total: 0,
+                max: 0
+            });
+
+
         });
 
         it('reports on socket information', async () => {
