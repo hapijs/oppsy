@@ -330,7 +330,6 @@ describe('Oppsy', { retry: true }, () => {
                 total: 1,
                 disconnects: 1,
                 statusCodes: {
-                    '499': 1
                 }
             };
 
