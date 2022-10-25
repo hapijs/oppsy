@@ -171,8 +171,16 @@ describe('Oppsy', () => {
 
         await Utils.timeout(500);
 
-        expect(_data.requests).to.equal({});
-        expect(_data.responseTimes).to.equal({});
+        expect(_data.requests).to.equal( {
+            total: 0,
+            disconnects: 0,
+            statusCodes: {},
+            activeRequests: 0 }
+        );
+        expect(_data.responseTimes).to.equal({
+            max: null,
+            avg: null
+        });
         expect(_data.sockets).to.equal({
             http: {
                 total: 0

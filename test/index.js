@@ -81,14 +81,11 @@ describe('Oppsy', { retry: true }, () => {
             }
 
             await Utils.timeout(500);
-
-            expect(network._requests).to.have.length(1);
-            expect(network._requests[server.info.port]).to.exist();
-            expect(network._requests[server.info.port].total).to.equal(20);
-            expect(network._requests[server.info.port].statusCodes[200]).to.equal(20);
-            expect(network._requests[server.info.port].activeRequests).to.equal(0);
-            expect(network._responseTimes[server.info.port]).to.exist();
-            expect(network._responseTimes[server.info.port]).to.exist();
+            expect(network._requests).to.exist();
+            expect(network._requests.total).to.equal(20);
+            expect(network._requests.statusCodes[200]).to.equal(20);
+            expect(network._requests.activeRequests).to.equal(0);
+            expect(network._responseTimes).to.exist();
 
         });
 
@@ -108,9 +105,11 @@ describe('Oppsy', { retry: true }, () => {
                 path: '/',
                 handler: (request, h) => {
 
-                    return new Promise((resolve)=>{
-                        setTimeout(()=>{resolve('ok')},1000)
-                    })
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve('ok');
+                        },1000);
+                    });
                 }
             });
 
@@ -132,12 +131,16 @@ describe('Oppsy', { retry: true }, () => {
 
             await Utils.timeout(500);
 
-            expect(network._requests).to.have.length(1);
-            expect(network._requests[server.info.port]).to.exist();
-            expect(network._requests[server.info.port].total).to.equal(20);
-            expect(network._requests[server.info.port].statusCodes).to.equal({});
-            expect(network._requests[server.info.port].activeRequests).to.not.equal(0);
-            expect(network._responseTimes[server.info.port]).to.not.exist();
+            expect(network._requests).to.have.length(4);
+            expect(network._requests).to.exist();
+            expect(network._requests.total).to.equal(20);
+            expect(network._requests.statusCodes).to.equal({});
+            expect(network._requests.activeRequests).to.not.equal(0);
+            expect(network._responseTimes).to.equal({
+                count: 0,
+                total: 0,
+                max: 0
+            });
 
 
         });
@@ -175,17 +178,15 @@ describe('Oppsy', { retry: true }, () => {
 
             await Utils.timeout(300);
 
-            const port = server.info.port;
+            expect(network._requests).to.exist();
+            expect(network._requests.total).to.equal(10);
+            expect(network._requests.statusCodes[200]).to.equal(10);
 
-            expect(network._requests[port]).to.exist();
-            expect(network._requests[port].total).to.equal(10);
-            expect(network._requests[port].statusCodes[200]).to.equal(10);
-
-            expect(network._responseTimes[port]).to.exist();
+            expect(network._responseTimes).to.exist();
 
             network.reset();
 
-            expect(network._requests[port]).to.equal({
+            expect(network._requests).to.equal({
                 total: 0,
                 disconnects: 0,
                 statusCodes: {},
@@ -193,7 +194,7 @@ describe('Oppsy', { retry: true }, () => {
             });
 
 
-            expect(network._responseTimes[port]).to.equal({
+            expect(network._responseTimes).to.equal({
                 count: 0,
                 total: 0,
                 max: 0
@@ -211,9 +212,11 @@ describe('Oppsy', { retry: true }, () => {
                 method: 'GET',
                 path: '/',
                 handler: (request, h) => {
-                    return new Promise((resolve)=>{
-                        setTimeout(()=>{resolve('ok')},10000)
-                    })
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve('ok');
+                        },10000);
+                    });
                 }
             });
 
@@ -235,18 +238,20 @@ describe('Oppsy', { retry: true }, () => {
 
             await Utils.timeout(100);
 
-            const port = server.info.port;
+            expect(network._requests).to.exist();
+            expect(network._requests.total).to.equal(10);
+            expect(network._requests.statusCodes).to.equal({});
+            expect(network._requests.activeRequests).to.equal(10);
 
-            expect(network._requests[port]).to.exist();
-            expect(network._requests[port].total).to.equal(10);
-            expect(network._requests[port].statusCodes).to.equal({});
-            expect(network._requests[port].activeRequests).to.equal(10);
-
-            expect(network._responseTimes).to.equal({});
+            expect(network._responseTimes).to.equal({
+                count: 0,
+                total: 0,
+                max: 0
+            });
 
             network.reset();
 
-            expect(network._requests[port]).to.equal({
+            expect(network._requests).to.equal({
                 total: 0,
                 disconnects: 0,
                 statusCodes: {},
@@ -254,7 +259,7 @@ describe('Oppsy', { retry: true }, () => {
             });
 
 
-            expect(network._responseTimes[port]).to.equal({
+            expect(network._responseTimes).to.equal({
                 count: 0,
                 total: 0,
                 max: 0
@@ -372,13 +377,12 @@ describe('Oppsy', { retry: true }, () => {
                 network.sockets()
             ]);
 
-            const port = server.info.port;
 
             expect(sockets.http.total).to.be.at.least(10);
             expect(sockets.https.total).to.be.equal(10);
 
-            expect(response[port].avg).to.be.at.least(1);
-            expect(response[port].max).to.be.at.least(1);
+            expect(response.avg).to.be.at.least(1);
+            expect(response.max).to.be.at.least(1);
         });
 
         it('tracks server disconnects', async () => {
@@ -443,8 +447,7 @@ describe('Oppsy', { retry: true }, () => {
 
             const result = await network.requests();
 
-            const requests = {};
-            requests[server.info.port] = {
+            const requests = {
                 total: 1,
                 disconnects: 1,
                 activeRequests: 0,
@@ -490,9 +493,9 @@ describe('Oppsy', { retry: true }, () => {
                     port: server.info.port
                 }, () => {
 
-                    expect(network._requests[server.info.port]).to.exist();
-                    expect(network._requests[server.info.port].total).to.equal(1);
-                    expect(network._requests[server.info.port].statusCodes).to.equal({});
+                    expect(network._requests).to.exist();
+                    expect(network._requests.total).to.equal(1);
+                    expect(network._requests.statusCodes).to.equal({});
                     resolve();
                 });
             });
