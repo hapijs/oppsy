@@ -7,6 +7,10 @@
   "files": [
     "lib"
   ],
+  "engines": {
+    "node": "16.14.0",
+    "npm": ">=8.3.1 <=8.13.2"
+  },
   "keywords": [
     "hapi",
     "ops",
