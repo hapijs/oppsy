@@ -7,6 +7,10 @@
   "files": [
     "lib"
   ],
+  "engines": {
+    "node": "16.14.0",
+    "npm": ">=8.3.1 <=8.13.2"
+  },
   "keywords": [
     "hapi",
     "ops",
@@ -27,7 +31,7 @@
     "@hapi/lab": "24.x.x"
   },
   "scripts": {
-    "test": "lab -a @hapi/code -t 100 -L -m 5000"
+    "test": "lab --assert @hapi/code --timeout 5000"
   },
   "license": "BSD-3-Clause"
 }

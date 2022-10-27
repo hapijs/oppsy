@@ -11,8 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, windows, macos]
-        node: ['*', '14', '12']
+        os: [ ubuntu, windows, macos ]
+        node: [ '16' ]
 
     runs-on: ${{ matrix.os }}-latest
     name: ${{ matrix.os }} node@${{ matrix.node }}
