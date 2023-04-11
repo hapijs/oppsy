@@ -8,8 +8,8 @@
     "lib"
   ],
   "engines": {
-    "node": "16",
-    "npm": "8"
+    "node": ">=16 <19",
+    "npm": ">=8 <10"
   },
   "keywords": [
     "hapi",
@@ -25,10 +25,10 @@
     "@hapi/hoek": "9.x.x"
   },
   "devDependencies": {
-    "@hapi/code": "8.x.x",
+    "@hapi/code": "9.x.x",
     "@hapi/eslint-plugin": "*",
-    "@hapi/hapi": "20.x.x",
-    "@hapi/lab": "24.x.x"
+    "@hapi/hapi": "21.x.x",
+    "@hapi/lab": "25.x.x"
   },
   "scripts": {
     "test": "lab --assert @hapi/code --timeout 5000"
