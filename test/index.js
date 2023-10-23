@@ -410,20 +410,19 @@ describe('Oppsy', { retry: true }, () => {
 
             await server.start();
 
-            new Promise((resolve) => {
-
+            await new Promise((resolve) => {
                 Http.get({
                     path: '/',
                     host: server.info.host,
                     port: server.info.port
                 }, () => {
-
                     expect(network._requests).to.exist();
                     expect(network._requests.total).to.equal(1);
                     expect(network._requests.statusCodes).to.equal({});
                     resolve();
                 });
             });
+            await server.stop();
         });
     });
 

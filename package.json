@@ -8,8 +8,7 @@
     "lib"
   ],
   "engines": {
-    "node": ">=16 <19",
-    "npm": ">=8 <10"
+    "node": "^16 || ^18 || ^20"
   },
   "keywords": [
     "hapi",
