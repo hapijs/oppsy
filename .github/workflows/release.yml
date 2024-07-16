@@ -1,0 +1,25 @@
+name: release
+
+on:
+  push:
+    branches:
+      - main
+  repository_dispatch:
+    types: ['deploy']
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: 1024pix/pix-actions/release@main
+        with:
+          npmPublish: true
+          updateMajorVersion: true
+        env:
+          GITHUB_TOKEN: '${{ secrets.PIX_SERVICE_ACTIONS_TOKEN }}'
+          NPM_TOKEN: ${{ secrets.NPM_PUBLISH_ACCESS_TOKEN }}
