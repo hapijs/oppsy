@@ -1,5 +1,5 @@
 {
-  "name": "oppsy",
+  "name": "@1024pix/oppsy",
   "version": "3.0.0",
   "repository": "git://github.com/hapijs/oppsy",
   "description": "An EventEmitter useful for collecting hapi server ops information",
