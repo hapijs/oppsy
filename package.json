@@ -1,7 +1,10 @@
 {
   "name": "@1024pix/oppsy",
   "version": "3.0.0",
-  "repository": "git://github.com/hapijs/oppsy",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/1024pix/oppsy.git"
+  },
   "description": "An EventEmitter useful for collecting hapi server ops information",
   "main": "lib/index.js",
   "files": [
@@ -32,5 +35,9 @@
   "scripts": {
     "test": "lab --assert @hapi/code --timeout 5000"
   },
+  "bugs": {
+    "url": "https://github.com/1024pix/oppsy/issues"
+  },
+  "homepage": "https://github.com/1024pix/oppsy#readme",
   "license": "BSD-3-Clause"
 }
